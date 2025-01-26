@@ -71,24 +71,28 @@ Citizen.CreateThread(function()
 end)
 
 
-
+local firstTime = true
+local lastHeistTime = nil
 
 function startHelicopterHeist()
-    local currentTime = GetGameTimer()
+    local currentTime = GetGameTimer() / 1000 
 
-
-    if Config.CooldownEnabled and (currentTime - lastHeistTime) < Config.CooldownDuration then
-        local remainingTime = math.ceil((Config.CooldownDuration - (currentTime - lastHeistTime)) / 60)
-        lib.notify({ title = "Cooldown", description = string.format(Config.NotifyCooldown, remainingTime), type = "error" })
-        return
+    if firstTime then
+        firstTime = false 
+    else
+        if lastHeistTime ~= nil and (currentTime - lastHeistTime) < Config.CooldownDuration then
+            local remainingTime = math.ceil((Config.CooldownDuration - (currentTime - lastHeistTime)) / 60)
+            lib.notify({ title = "Cooldown", description = string.format(Config.NotifyCooldown, remainingTime), type = "error" })
+            return
+        end
     end
 
+    lastHeistTime = currentTime 
     isJobActive = true
-    lastHeistTime = currentTime
     playerStartedJob = PlayerPedId()
     lib.notify({ title = "Heist Started", description = Config.NotifyStart, type = "info" })
 
-   
+
     local model = GetHashKey(Config.HelicopterModel)
     RequestModel(model)
     while not HasModelLoaded(model) do
